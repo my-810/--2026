@@ -25,8 +25,8 @@ body {
 
 .panel {
   background: #fff;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 6px;
+  margin-bottom: 6px;
   border-radius: 10px;
 }
 
@@ -38,8 +38,8 @@ body {
 .btn {
   border: none;
   border-radius: 10px;
-  padding: 16px;
-  font-size: 18px;
+  padding: 10px;
+  font-size: 16px;
   color: white;
 }
 
@@ -62,8 +62,8 @@ body {
 }
 
 .keypad button {
-  height: 80px;
-  font-size: 26px;
+  height: 52px;
+  font-size: 22px;
   border: none;
   border-radius: 12px;
   background: #f5f5f5;
@@ -71,6 +71,32 @@ body {
 
 .key-c { background: #e53935; color: white; }
 .key-back { background: #ff9800; color: white; }
+@media (max-width: 480px) {
+
+  .big {
+    font-size: 22px;
+  }
+
+  .panel {
+    padding: 6px;
+    margin-bottom: 6px;
+  }
+
+  .btn {
+    padding: 8px;
+    font-size: 15px;
+  }
+
+  .keypad {
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .keypad button {
+    height: 46px;
+    font-size: 20px;
+  }
+}
 </style>
 </head>
 
@@ -86,6 +112,7 @@ body {
 <div class="wrap">
 
 <div class="panel">
+点数: <span id="items">0</span>点<br>
 小計: ¥<span id="sub">0</span><br>
 <div class="big">合計: ¥<span id="total">0</span></div>
 </div>
@@ -136,7 +163,13 @@ let subtotal = 0;
 let received = "";
 let history = [];
 
-const day = "2026-09-12";
+const today = new Date();
+
+const day =
+  today.getFullYear() + "-" +
+  String(today.getMonth() + 1).padStart(2, "0") + "-" +
+  String(today.getDate()).padStart(2, "0");
+
 const reg = "A";
 
 /* 永続データ */
@@ -174,12 +207,11 @@ function update(){
   const recv = parseInt(received || 0);
   const change = recv - total;
 
-  document.getElementById("sub").textContent = subtotal;
-  document.getElementById("total").textContent = total;
-  document.getElementById("rec").textContent = received || 0;
-  document.getElementById("chg").textContent = change;
-}
-
+document.getElementById("items").textContent = history.length;
+document.getElementById("sub").textContent = subtotal;
+document.getElementById("total").textContent = total;
+document.getElementById("rec").textContent = received || 0;
+document.getElementById("chg").textContent = change;
 /* ===== 操作 ===== */
 function undo(){
   if(history.length === 0) return;
