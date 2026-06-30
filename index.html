@@ -7,6 +7,7 @@
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111111">
+
 <style>
 body {
   margin: 0;
@@ -52,13 +53,14 @@ body {
   gap: 8px;
 }
 
+/* keypad */
 .keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
-  background: #e0e0e0;
   padding: 10px;
   border-radius: 12px;
+  background: #e0e0e0;
 }
 
 .keypad button {
@@ -71,31 +73,33 @@ body {
 
 .key-c { background: #e53935; color:black; }
 .key-back { background: #ff9800; color:black; }
-@media (max-width: 480px) {
 
-  .big {
-    font-size: 22px;
-  }
+.mode-indicator {
+  font-size: 12px;
+  opacity: 0.8;
+}
 
-  .panel {
-    padding: 6px;
-    margin-bottom: 6px;
-  }
+/* ===== 口座入力オーバーレイ ===== */
+#manualScreen {
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.8);
+  z-index:9999;
+  padding:20px;
+  box-sizing:border-box;
+}
 
-  .btn {
-    padding: 8px;
-    font-size: 15px;
-  }
+#manualBox {
+  background:#fff;
+  padding:15px;
+  border-radius:12px;
+}
 
-  .keypad {
-    gap: 6px;
-    padding: 6px;
-  }
-
-  .keypad button {
-    height: 46px;
-    font-size: 20px;
-  }
+#manualDisplay {
+  font-size:32px;
+  font-weight:bold;
 }
 </style>
 </head>
@@ -123,12 +127,19 @@ body {
 </div>
 
 <div class="panel">
-<div class="grid" id="priceButtons"></div>
+手入力: ¥<span id="manualView">0</span>
+<div class="mode-indicator">通常モード</div>
 </div>
 
 <div class="panel">
+<div class="grid" id="priceButtons"></div>
+</div>
+
+<!-- 操作 -->
+<div class="panel grid">
 <button class="btn red" onclick="undo()">取消</button>
 <button class="btn red" onclick="resetAll()">全取消</button>
+<button class="btn blue" onclick="openManual()">口座入力</button>
 </div>
 
 <div class="panel">
@@ -137,7 +148,8 @@ body {
 </button>
 </div>
 
-<div class="panel keypad">
+<!-- テンキー -->
+<div class="panel keypad" id="keypad">
 <button onclick="num(7)">7</button>
 <button onclick="num(8)">8</button>
 <button onclick="num(9)">9</button>
@@ -157,12 +169,36 @@ body {
 
 </div>
 
+<!-- ===== 口座入力画面 ===== -->
+<div id="manualScreen">
+  <div id="manualBox">
+
+    <div style="font-size:18px;margin-bottom:10px;">
+      口座入力
+    </div>
+
+    <div id="manualDisplay">0</div>
+
+    <div class="panel keypad" id="manualKeypad"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+      <button class="btn blue" onclick="confirmManual()">確定</button>
+      <button class="btn red" onclick="cancelManual()">キャンセル</button>
+    </div>
+
+  </div>
+</div>
+
 <script>
-/* ===== 状態 ===== */
+
+/* ===== state ===== */
 let subtotal = 0;
 let received = "";
+let manualValue = "";
 let history = [];
+let isManualOpen = false;
 
+/* ===== date ===== */
 const today = new Date();
 
 const day =
@@ -172,17 +208,14 @@ const day =
 
 const reg = "A";
 
-/* 永続データ */
+/* ===== storage ===== */
 let logs = JSON.parse(localStorage.getItem("salesLogs") || "[]");
 
-/* ===== 初期表示 ===== */
+/* ===== init ===== */
 document.getElementById("day").textContent = day;
 document.getElementById("reg").textContent = reg;
-document.getElementById("count").textContent = logs.length;
-document.getElementById("sales").textContent =
-  logs.reduce((a,b)=>a+b.total,0);
 
-/* ===== 商品ボタン ===== */
+/* ===== products ===== */
 const prices = [700,600,500,400,380,300,280,250,240,200,180,130,100,50,10];
 
 const container = document.getElementById("priceButtons");
@@ -191,33 +224,115 @@ prices.forEach(p => {
   const b = document.createElement("button");
   b.className = "btn blue";
   b.textContent = p + "円";
-
   b.onclick = () => {
     subtotal += p;
     history.push(p);
     update();
   };
-
   container.appendChild(b);
 });
 
-/* ===== 表示更新 ===== */
-function update(){
-  const total = subtotal;
-  const recv = parseInt(received || 0);
-  const change = recv - total;
-
-document.getElementById("items").textContent = history.length;
-document.getElementById("sub").textContent = subtotal;
-document.getElementById("total").textContent = total;
-document.getElementById("rec").textContent = received || 0;
-document.getElementById("chg").textContent = change;
+/* ===== keypad ===== */
+function num(n){
+  if(isManualOpen) return;
+  received += n;
+  update();
 }
-/* ===== 操作 ===== */
+
+function back(){
+  if(isManualOpen) return;
+  received = received.slice(0,-1);
+  update();
+}
+
+/* ===== 口座入力 ===== */
+function openManual(){
+  manualValue = "";
+  isManualOpen = true;
+  document.getElementById("manualScreen").style.display = "block";
+  updateManual();
+}
+
+function cancelManual(){
+  manualValue = "";
+  isManualOpen = false;
+  document.getElementById("manualScreen").style.display = "none";
+}
+
+function confirmManual(){
+
+  const price = Number(manualValue);
+
+  if(!price || price <= 0){
+    alert("金額が不正です");
+    return;
+  }
+
+  subtotal += price;
+  history.push(price);
+
+  manualValue = "";
+  isManualOpen = false;
+  document.getElementById("manualScreen").style.display = "none";
+
+  update();
+}
+
+/* manual keypad */
+function manualNum(n){
+  manualValue += n;
+  updateManual();
+}
+
+function manualBack(){
+  manualValue = manualValue.slice(0,-1);
+  updateManual();
+}
+
+function manualClear(){
+  manualValue = "";
+  updateManual();
+}
+
+/* keypad build */
+const mk = document.getElementById("manualKeypad");
+
+[7,8,9,4,5,6,1,2,3].forEach(n=>{
+  const b = document.createElement("button");
+  b.textContent = n;
+  b.onclick = ()=>manualNum(n);
+  mk.appendChild(b);
+});
+
+mk.innerHTML += `
+<button onclick="manualClear()" class="key-c">C</button>
+<button onclick="manualNum(0)">0</button>
+<button onclick="manualBack()" class="key-back">←</button>
+`;
+
+/* ===== update ===== */
+function update(){
+
+  const total = subtotal;
+  const recv = Number(received) || 0;
+
+  document.getElementById("items").textContent = history.length;
+  document.getElementById("sub").textContent = subtotal;
+  document.getElementById("total").textContent = total;
+  document.getElementById("rec").textContent = received || 0;
+  document.getElementById("chg").textContent = recv - total;
+
+  document.getElementById("manualView").textContent = manualValue || 0;
+
+  document.getElementById("count").textContent = logs.length;
+  document.getElementById("sales").textContent =
+    logs.reduce((a,b)=>a+b.total,0);
+}
+
+/* ===== undo/reset ===== */
 function undo(){
   if(history.length === 0) return;
-  const last = history.pop();
-  subtotal -= last;
+  subtotal -= history.pop();
   update();
 }
 
@@ -225,27 +340,13 @@ function resetAll(){
   if(!confirm("全取消しますか？")) return;
   subtotal = 0;
   received = "";
+  manualValue = "";
   history = [];
+  isManualOpen = false;
   update();
 }
 
-/* ===== テンキー ===== */
-function num(n){
-  received += n;
-  update();
-}
-
-function clearRec(){
-  received = "";
-  update();
-}
-
-function back(){
-  received = received.slice(0,-1);
-  update();
-}
-
-/* ===== 会計 ===== */
+/* ===== pay ===== */
 function pay(){
 
   if(subtotal === 0){
@@ -253,34 +354,28 @@ function pay(){
     return;
   }
 
-  const total = subtotal;
-  const recv = parseInt(received || 0);
+  const recv = Number(received) || 0;
 
-  if(recv < total){
+  if(recv < subtotal){
     alert("金額不足です");
     return;
   }
 
-  const change = recv - total;
+  const change = recv - subtotal;
 
-  if(!confirm(`合計 ¥${total}\n預かり ¥${recv}\nおつり ¥${change}\n確定しますか？`)){
+  if(!confirm(`合計 ¥${subtotal}\n預かり ¥${recv}\nおつり ¥${change}\n確定しますか？`)){
     return;
   }
 
   logs.push({
     day,
     reg,
-    total,
+    total: subtotal,
     received: recv,
-    change,
-    time: new Date().toISOString()
+    change
   });
 
   localStorage.setItem("salesLogs", JSON.stringify(logs));
-
-  document.getElementById("count").textContent = logs.length;
-  document.getElementById("sales").textContent =
-    logs.reduce((a,b)=>a+b.total,0);
 
   subtotal = 0;
   received = "";
@@ -288,8 +383,14 @@ function pay(){
   update();
 }
 
-/* 初期描画 */
+/* ===== PWA ===== */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("./sw.js");
+}
+
+/* init */
 update();
+
 </script>
 
 </body>
