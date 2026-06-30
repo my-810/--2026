@@ -120,7 +120,27 @@ body {
 預かり: ¥<span id="rec">0</span><br>
 おつり: ¥<span id="chg">0</span>
 </div>
+<div class="panel">
+  <div class="keypad">
 
+    <button onclick="num(7)">7</button>
+    <button onclick="num(8)">8</button>
+    <button onclick="num(9)">9</button>
+
+    <button onclick="num(4)">4</button>
+    <button onclick="num(5)">5</button>
+    <button onclick="num(6)">6</button>
+
+    <button onclick="num(1)">1</button>
+    <button onclick="num(2)">2</button>
+    <button onclick="num(3)">3</button>
+
+    <button class="key-c" onclick="received='';update()">C</button>
+    <button onclick="num(0)">0</button>
+    <button class="key-back" onclick="back()">←</button>
+
+  </div>
+</div>
 <div class="panel">
 <div class="grid" id="priceButtons"></div>
 </div>
@@ -302,14 +322,7 @@ function buildManualKeypad(){
   mk.appendChild(backBtn);
 }
 /* ===== build keypad ===== */
-const mk = document.getElementById("manualKeypad");
 
-[7,8,9,4,5,6,1,2,3].forEach(n=>{
-  const b = document.createElement("button");
-  b.textContent = n;
-  b.onclick = ()=>manualNum(n);
-  mk.appendChild(b);
-});
 
 const cBtn = document.createElement("button");
 cBtn.textContent = "C";
