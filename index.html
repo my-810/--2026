@@ -221,6 +221,8 @@ function openManual(){
 
   document.getElementById("manualScreen").style.display = "block";
 
+  buildManualKeypad();   // ←これ追加（重要）
+
   setTimeout(() => {
     updateManual();
   }, 0);
@@ -267,7 +269,38 @@ function manualClear(){
   manualValue = "";
   updateManual();
 }
+function buildManualKeypad(){
 
+  const mk = document.getElementById("manualKeypad");
+  mk.innerHTML = ""; // ←超重要（リセット）
+
+  const keys = [7,8,9,4,5,6,1,2,3];
+
+  keys.forEach(n=>{
+    const b = document.createElement("button");
+    b.textContent = n;
+    b.onclick = ()=>manualNum(n);
+    mk.appendChild(b);
+  });
+
+  const cBtn = document.createElement("button");
+  cBtn.textContent = "C";
+  cBtn.className = "key-c";
+  cBtn.onclick = manualClear;
+
+  const zeroBtn = document.createElement("button");
+  zeroBtn.textContent = "0";
+  zeroBtn.onclick = ()=>manualNum(0);
+
+  const backBtn = document.createElement("button");
+  backBtn.textContent = "←";
+  backBtn.className = "key-back";
+  backBtn.onclick = manualBack;
+
+  mk.appendChild(cBtn);
+  mk.appendChild(zeroBtn);
+  mk.appendChild(backBtn);
+}
 /* ===== build keypad ===== */
 const mk = document.getElementById("manualKeypad");
 
