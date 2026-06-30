@@ -174,15 +174,14 @@ body {
 </div>
 
 <script>
-/* ===== 状態 ===== */
 let subtotal = 0;
 let received = "";
 let history = [];
-  
+
 let accountMode = false;
 let accountValue = "";
-const today = new Date();
 
+const today = new Date();
 const day =
   today.getFullYear() + "-" +
   String(today.getMonth() + 1).padStart(2, "0") + "-" +
@@ -190,17 +189,13 @@ const day =
 
 const reg = "A";
 
-/* 永続データ */
 let logs = JSON.parse(localStorage.getItem("salesLogs") || "[]");
 
-/* ===== 初期表示 ===== */
+/* 初期表示 */
 document.getElementById("day").textContent = day;
 document.getElementById("reg").textContent = reg;
-document.getElementById("count").textContent = logs.length;
-document.getElementById("sales").textContent =
-  logs.reduce((a,b)=>a+b.total,0);
 
-/* ===== 商品ボタン ===== */
+/* 商品ボタン */
 const prices = [700,600,500,400,380,300,280,250,240,200,180,130,100,50,10];
 
 const container = document.getElementById("priceButtons");
@@ -219,22 +214,54 @@ prices.forEach(p => {
   container.appendChild(b);
 });
 
-/* ===== 表示更新 ===== */
+/* 更新 */
 function update(){
   const total = subtotal;
   const recv = parseInt(received || 0);
   const change = recv - total;
 
-document.getElementById("items").textContent = history.length;
-document.getElementById("sub").textContent = subtotal;
-document.getElementById("total").textContent = total;
-document.getElementById("rec").textContent = received || 0;
-document.getElementById("chg").textContent = change;
-if(accountMode){
+  document.getElementById("items").textContent = history.length;
+  document.getElementById("sub").textContent = subtotal;
+  document.getElementById("total").textContent = total;
+
+  if(accountMode){
     document.getElementById("rec").textContent = "口座入力中: " + accountValue;
     document.getElementById("chg").textContent = "-";
- }
-/* ===== 操作 ===== */
+  } else {
+    document.getElementById("rec").textContent = received || 0;
+    document.getElementById("chg").textContent = change;
+  }
+}
+
+/* テンキー */
+function num(n){
+  if(accountMode){
+    accountValue += String(n);
+  } else {
+    received += String(n);
+  }
+  update();
+}
+
+function clearRec(){
+  if(accountMode){
+    accountValue = "";
+  } else {
+    received = "";
+  }
+  update();
+}
+
+function back(){
+  if(accountMode){
+    accountValue = accountValue.slice(0, -1);
+  } else {
+    received = received.slice(0, -1);
+  }
+  update();
+}
+
+/* 操作 */
 function undo(){
   if(history.length === 0) return;
   const last = history.pop();
@@ -249,48 +276,9 @@ function resetAll(){
   history = [];
   update();
 }
-function startAccountInput(){
-  accountMode = true;
-  accountValue = "";
 
-  document.querySelector(".keypad").classList.add("account");
-
-  update();
-}
-/* ===== テンキー ===== */
-
-
-
-
-  update();
-}ceived = "";
-  update();
-}
-
-functionfunction clearRec(){
-  if(accountMode){
-    accountValue = "";
-  } else {
-    received = "";
-  }
-  update();
-}
-
-function back(){
-  if(accountMode){
-    accountValue = accountValue.slice(0,-1);
-  } else {
-    received = received.slice(0,-1);
-  }
-  update();
-} back(){
-  received = received.slice(0,-1);
-  update();
-}
-
-/* ===== 会計 ===== */
+/* 会計 */
 function pay(){
-
   if(subtotal === 0){
     alert("商品がありません");
     return;
@@ -321,17 +309,21 @@ function pay(){
 
   localStorage.setItem("salesLogs", JSON.stringify(logs));
 
-  document.getElementById("count").textContent = logs.length;
-  document.getElementById("sales").textContent =
-    logs.reduce((a,b)=>a+b.total,0);
-
   subtotal = 0;
   received = "";
   history = [];
   update();
 }
-function confirmAccount(){
 
+/* 口座 */
+function startAccountInput(){
+  accountMode = true;
+  accountValue = "";
+  document.querySelector(".keypad").classList.add("account");
+  update();
+}
+
+function confirmAccount(){
   const val = parseInt(accountValue || 0);
 
   if(val <= 0){
@@ -342,19 +334,20 @@ function confirmAccount(){
   subtotal += val;
   history.push(val);
 
-  accountValue = "";
   accountMode = false;
-
+  accountValue = "";
   document.querySelector(".keypad").classList.remove("account");
 
   update();
 }
+
 function cancelAccount(){
   accountMode = false;
   accountValue = "";
   document.querySelector(".keypad").classList.remove("account");
   update();
 }
+
 /* 初期描画 */
 update();
 </script>
