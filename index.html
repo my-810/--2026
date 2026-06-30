@@ -7,7 +7,6 @@
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111111">
-
 <style>
 body {
   margin: 0;
@@ -53,25 +52,13 @@ body {
   gap: 8px;
 }
 
-/* ===== keypad ===== */
 .keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
+  background: #e0e0e0;
   padding: 10px;
   border-radius: 12px;
-  transition: 0.2s;
-}
-
-/* 通常 */
-.mode-recv {
-  background: #e0e0e0;
-}
-
-/* 手入力モード（色分け） */
-.mode-manual {
-  background: #fff3e0;
-  outline: 2px solid #ff9800;
 }
 
 .keypad button {
@@ -84,18 +71,31 @@ body {
 
 .key-c { background: #e53935; color:black; }
 .key-back { background: #ff9800; color:black; }
-
-.mode-indicator {
-  font-size: 12px;
-  margin-top: 4px;
-  opacity: 0.8;
-}
-
 @media (max-width: 480px) {
-  .big { font-size: 22px; }
-  .btn { padding: 8px; font-size: 15px; }
-  .keypad { gap: 6px; }
-  .keypad button { height: 46px; font-size: 20px; }
+
+  .big {
+    font-size: 22px;
+  }
+
+  .panel {
+    padding: 6px;
+    margin-bottom: 6px;
+  }
+
+  .btn {
+    padding: 8px;
+    font-size: 15px;
+  }
+
+  .keypad {
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .keypad button {
+    height: 46px;
+    font-size: 20px;
+  }
 }
 </style>
 </head>
@@ -122,22 +122,13 @@ body {
 おつり: ¥<span id="chg">0</span>
 </div>
 
-<!-- 手入力表示 -->
-<div class="panel">
-手入力: <span id="manualView">0</span>
-<div class="mode-indicator" id="modeText">通常モード</div>
-</div>
-
 <div class="panel">
 <div class="grid" id="priceButtons"></div>
 </div>
 
-<!-- 操作 -->
-<div class="panel grid">
+<div class="panel">
 <button class="btn red" onclick="undo()">取消</button>
 <button class="btn red" onclick="resetAll()">全取消</button>
-<button class="btn blue" onclick="toggleManual()">手入力</button>
-<button class="btn blue" onclick="clearManual()">クリア</button>
 </div>
 
 <div class="panel">
@@ -146,8 +137,7 @@ body {
 </button>
 </div>
 
-<!-- keypad -->
-<div class="panel keypad" id="keypad">
+<div class="panel keypad">
 <button onclick="num(7)">7</button>
 <button onclick="num(8)">8</button>
 <button onclick="num(9)">9</button>
@@ -168,14 +158,11 @@ body {
 </div>
 
 <script>
-/* ===== state ===== */
+/* ===== 状態 ===== */
 let subtotal = 0;
 let received = "";
-let manualBuffer = "";
 let history = [];
-let inputMode = "recv";
 
-/* ===== date ===== */
 const today = new Date();
 
 const day =
@@ -185,117 +172,48 @@ const day =
 
 const reg = "A";
 
-/* ===== storage ===== */
+/* 永続データ */
 let logs = JSON.parse(localStorage.getItem("salesLogs") || "[]");
 
-/* ===== init ===== */
+/* ===== 初期表示 ===== */
 document.getElementById("day").textContent = day;
 document.getElementById("reg").textContent = reg;
+document.getElementById("count").textContent = logs.length;
+document.getElementById("sales").textContent =
+  logs.reduce((a,b)=>a+b.total,0);
 
-/* ===== products ===== */
+/* ===== 商品ボタン ===== */
 const prices = [700,600,500,400,380,300,280,250,240,200,180,130,100,50,10];
+
 const container = document.getElementById("priceButtons");
 
 prices.forEach(p => {
   const b = document.createElement("button");
   b.className = "btn blue";
   b.textContent = p + "円";
+
   b.onclick = () => {
     subtotal += p;
     history.push(p);
     update();
   };
+
   container.appendChild(b);
 });
 
-/* ===== mode ===== */
-function toggleManual(){
-  inputMode = "manual";
-  manualBuffer = "";
-  updateModeUI();
-}
-
-function clearManual(){
-  manualBuffer = "";
-  update();
-}
-
-/* ===== keypad ===== */
-function num(n){
-  if(inputMode === "recv"){
-    received += n;
-  } else {
-    manualBuffer += n;
-  }
-  update();
-}
-
-function back(){
-  if(inputMode === "recv"){
-    received = received.slice(0,-1);
-  } else {
-    manualBuffer = manualBuffer.slice(0,-1);
-  }
-  update();
-}
-
-function clearRec(){
-  received = "";
-  update();
-}
-
-/* ===== add manual ===== */
-function addManual(){
-  const price = Number(manualBuffer);
-
-  if(!price || price <= 0){
-    alert("金額が不正です");
-    return;
-  }
-
-  subtotal += price;
-  history.push(price);
-
-  manualBuffer = "";
-  inputMode = "recv";
-
-  update();
-}
-
-/* ===== update ===== */
+/* ===== 表示更新 ===== */
 function update(){
   const total = subtotal;
-  const recv = Number(received) || 0;
+  const recv = parseInt(received || 0);
   const change = recv - total;
 
-  document.getElementById("items").textContent = history.length;
-  document.getElementById("sub").textContent = subtotal;
-  document.getElementById("total").textContent = total;
-  document.getElementById("rec").textContent = received || 0;
-  document.getElementById("chg").textContent = change;
-
-  document.getElementById("manualView").textContent = manualBuffer || 0;
-
-  updateModeUI();
+document.getElementById("items").textContent = history.length;
+document.getElementById("sub").textContent = subtotal;
+document.getElementById("total").textContent = total;
+document.getElementById("rec").textContent = received || 0;
+document.getElementById("chg").textContent = change;
 }
-
-/* ===== mode UI ===== */
-function updateModeUI(){
-  const pad = document.getElementById("keypad");
-  const modeText = document.getElementById("modeText");
-
-  if(inputMode === "manual"){
-    pad.classList.add("mode-manual");
-    pad.classList.remove("mode-recv");
-    modeText.textContent = "手入力モード";
-  } else {
-    pad.classList.add("mode-recv");
-    pad.classList.remove("mode-manual");
-    modeText.textContent = "通常モード";
-  }
-}
-
-/* ===== undo/reset ===== */
+/* ===== 操作 ===== */
 function undo(){
   if(history.length === 0) return;
   const last = history.pop();
@@ -307,20 +225,36 @@ function resetAll(){
   if(!confirm("全取消しますか？")) return;
   subtotal = 0;
   received = "";
-  manualBuffer = "";
   history = [];
   update();
 }
 
-/* ===== pay ===== */
+/* ===== テンキー ===== */
+function num(n){
+  received += n;
+  update();
+}
+
+function clearRec(){
+  received = "";
+  update();
+}
+
+function back(){
+  received = received.slice(0,-1);
+  update();
+}
+
+/* ===== 会計 ===== */
 function pay(){
+
   if(subtotal === 0){
     alert("商品がありません");
     return;
   }
 
   const total = subtotal;
-  const recv = Number(received) || 0;
+  const recv = parseInt(received || 0);
 
   if(recv < total){
     alert("金額不足です");
@@ -333,23 +267,28 @@ function pay(){
     return;
   }
 
-  logs.push({ day, reg, total, received: recv, change });
+  logs.push({
+    day,
+    reg,
+    total,
+    received: recv,
+    change,
+    time: new Date().toISOString()
+  });
 
   localStorage.setItem("salesLogs", JSON.stringify(logs));
 
+  document.getElementById("count").textContent = logs.length;
+  document.getElementById("sales").textContent =
+    logs.reduce((a,b)=>a+b.total,0);
+
   subtotal = 0;
   received = "";
-  manualBuffer = "";
   history = [];
   update();
 }
 
-/* ===== PWA ===== */
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("./sw.js");
-}
-
-/* init */
+/* 初期描画 */
 update();
 </script>
 
