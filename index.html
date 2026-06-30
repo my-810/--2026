@@ -119,6 +119,23 @@ body {
 <div class="panel">
 預かり: ¥<span id="rec">0</span><br>
 おつり: ¥<span id="chg">0</span>
+
+</div>
+<div class="panel">
+<div class="grid" id="priceButtons"></div>
+</div>
+
+<div class="panel grid">
+<button class="btn red" onclick="undo()">取消</button>
+<button class="btn red" onclick="resetAll()">全取消</button>
+<button class="btn blue" onclick="openManual()">口座入力</button>
+</div>
+
+<div class="panel">
+<button class="btn blue" style="width:100%" onclick="pay()">
+会計完了
+</button>
+</div>
 </div>
 <div class="panel">
   <div class="keypad">
@@ -140,23 +157,6 @@ body {
     <button class="key-back" onclick="back()">←</button>
 
   </div>
-</div>
-<div class="panel">
-<div class="grid" id="priceButtons"></div>
-</div>
-
-<div class="panel grid">
-<button class="btn red" onclick="undo()">取消</button>
-<button class="btn red" onclick="resetAll()">全取消</button>
-<button class="btn blue" onclick="openManual()">口座入力</button>
-</div>
-
-<div class="panel">
-<button class="btn blue" style="width:100%" onclick="pay()">
-会計完了
-</button>
-</div>
-
 </div>
 
 <!-- ===== オーバーレイ ===== -->
