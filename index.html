@@ -216,7 +216,7 @@ document.getElementById("day").textContent = day;
 document.getElementById("reg").textContent = reg;
 
 /* ===== products ===== */
-const prices = [700,600,500,400,380,300,280,250,240,200,180,130,100,50,10];
+const prices = [700,600,500,400,380,300,280,250,240,200,180,130,100,];
 
 const container = document.getElementById("priceButtons");
 
@@ -303,12 +303,39 @@ const mk = document.getElementById("manualKeypad");
   b.onclick = ()=>manualNum(n);
   mk.appendChild(b);
 });
+const cBtn = document.createElement("button");
+cBtn.textContent = "C";
+cBtn.className = "key-c";
+cBtn.onclick = function () {
+  manualClear();
+};
 
-mk.innerHTML += `
-<button onclick="manualClear()" class="key-c">C</button>
-<button onclick="manualNum(0)">0</button>
-<button onclick="manualBack()" class="key-back">←</button>
-`;
+const zeroBtn = document.createElement("button");
+zeroBtn.textContent = "0";
+zeroBtn.onclick = function () {
+  manualNum(0);
+};
+
+const backBtn = document.createElement("button");
+backBtn.textContent = "←";
+backBtn.className = "key-back";
+backBtn.onclick = function () {
+  manualBack();
+};
+
+mk.appendChild(cBtn);
+mk.appendChild(zeroBtn);
+mk.appendChild(backBtn);
+const keys = [7,8,9,4,5,6,1,2,3];
+
+keys.forEach(n => {
+  const btn = document.createElement("button");
+  btn.textContent = n;
+  btn.onclick = function() {
+    manualNum(n);
+  };
+  mk.appendChild(btn);
+});
 
 /* ===== update ===== */
 function update(){
