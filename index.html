@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>学祭レジ 安定版</title>
+<title>学祭レジ </title>
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111111">
@@ -96,6 +96,18 @@ body {
     height: 46px;
     font-size: 20px;
   }
+　}.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.keypad.account {
+  background: #1565c0;
+}
+
+.keypad.account button {
+  background: #42a5f5;
+  color: white;
 }
 </style>
 </head>
@@ -126,13 +138,14 @@ body {
 <div class="grid" id="priceButtons"></div>
 </div>
 
-<div class="panel">
-<button class="btn red" onclick="undo()">取消</button>
-<button class="btn red" onclick="resetAll()">全取消</button>
-</div>
+
 
 <div class="panel">
-<button class="btn blue" style="width:100%" onclick="pay()">
+<butto<div class="panel grid3">
+  <button class="btn red" onclick="undo()">取消</button>
+  <button class="btn red" onclick="resetAll()">全取消</button>
+  <button class="btn blue" onclick="startAccountInput()">口座入力</button>
+</div>n class="btn blue" style="width:100%" onclick="pay()">
 会計完了
 </button>
 </div>
@@ -154,7 +167,10 @@ body {
 <button onclick="num(0)">0</button>
 <button class="key-back" onclick="back()">←</button>
 </div>
-
+<div class="panel">
+  <button class="btn blue" onclick="confirmAccount()">確定</button>
+  <button class="btn red" onclick="cancelAccount()">キャンセル</button>
+</div>
 </div>
 
 <script>
@@ -162,7 +178,9 @@ body {
 let subtotal = 0;
 let received = "";
 let history = [];
-
+  
+let accountMode = false;
+let accountValue = "";
 const today = new Date();
 
 const day =
@@ -212,7 +230,10 @@ document.getElementById("sub").textContent = subtotal;
 document.getElementById("total").textContent = total;
 document.getElementById("rec").textContent = received || 0;
 document.getElementById("chg").textContent = change;
-}
+if(accountMode){
+    document.getElementById("rec").textContent = "口座入力中: " + accountValue;
+    document.getElementById("chg").textContent = "-";
+ }
 /* ===== 操作 ===== */
 function undo(){
   if(history.length === 0) return;
@@ -228,19 +249,41 @@ function resetAll(){
   history = [];
   update();
 }
+function startAccountInput(){
+  accountMode = true;
+  accountValue = "";
 
+  document.querySelector(".keypad").classList.add("account");
+
+  update();
+}
 /* ===== テンキー ===== */
-function num(n){
-  received += n;
+
+
+
+
+  update();
+}ceived = "";
   update();
 }
 
-function clearRec(){
-  received = "";
+functionfunction clearRec(){
+  if(accountMode){
+    accountValue = "";
+  } else {
+    received = "";
+  }
   update();
 }
 
 function back(){
+  if(accountMode){
+    accountValue = accountValue.slice(0,-1);
+  } else {
+    received = received.slice(0,-1);
+  }
+  update();
+} back(){
   received = received.slice(0,-1);
   update();
 }
@@ -287,7 +330,31 @@ function pay(){
   history = [];
   update();
 }
+function confirmAccount(){
 
+  const val = parseInt(accountValue || 0);
+
+  if(val <= 0){
+    alert("金額を入力してください");
+    return;
+  }
+
+  subtotal += val;
+  history.push(val);
+
+  accountValue = "";
+  accountMode = false;
+
+  document.querySelector(".keypad").classList.remove("account");
+
+  update();
+}
+function cancelAccount(){
+  accountMode = false;
+  accountValue = "";
+  document.querySelector(".keypad").classList.remove("account");
+  update();
+}
 /* 初期描画 */
 update();
 </script>
