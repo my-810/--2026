@@ -326,16 +326,7 @@ backBtn.onclick = function () {
 mk.appendChild(cBtn);
 mk.appendChild(zeroBtn);
 mk.appendChild(backBtn);
-const keys = [7,8,9,4,5,6,1,2,3];
 
-keys.forEach(n => {
-  const btn = document.createElement("button");
-  btn.textContent = n;
-  btn.onclick = function() {
-    manualNum(n);
-  };
-  mk.appendChild(btn);
-});
 
 /* ===== update ===== */
 function update(){
