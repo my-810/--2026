@@ -126,10 +126,7 @@ body {
 おつり: ¥<span id="chg">0</span>
 </div>
 
-<div class="panel">
-手入力: ¥<span id="manualView">0</span>
-<div class="mode-indicator">通常モード</div>
-</div>
+
 
 <div class="panel">
 <div class="grid" id="priceButtons"></div>
@@ -273,14 +270,15 @@ function confirmManual(){
 
   manualValue = "";
   isManualOpen = false;
+
   document.getElementById("manualScreen").style.display = "none";
 
   update();
+  updateManual();
 }
-
 /* manual keypad */
 function manualNum(n){
-  manualValue += n;
+  manualValue = String(manualValue) + String(n);
   updateManual();
 }
 
@@ -340,13 +338,18 @@ function update(){
   document.getElementById("rec").textContent = received || 0;
   document.getElementById("chg").textContent = recv - total;
 
-  document.getElementById("manualView").textContent = manualValue || 0;
+  
 
   document.getElementById("count").textContent = logs.length;
   document.getElementById("sales").textContent =
     logs.reduce((a,b)=>a+b.total,0);
 }
+function updateManual(){
+  const el = document.getElementById("manualDisplay");
+  if(!el) return;
 
+  el.textContent = manualValue.length ? manualValue : "0";
+}
 /* ===== undo/reset ===== */
 function undo(){
   if(history.length === 0) return;
