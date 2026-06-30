@@ -74,12 +74,7 @@ body {
 .key-c { background: #e53935; color:black; }
 .key-back { background: #ff9800; color:black; }
 
-.mode-indicator {
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-/* ===== 口座入力オーバーレイ ===== */
+/* overlay */
 #manualScreen {
   display:none;
   position:fixed;
@@ -126,13 +121,10 @@ body {
 おつり: ¥<span id="chg">0</span>
 </div>
 
-
-
 <div class="panel">
 <div class="grid" id="priceButtons"></div>
 </div>
 
-<!-- 操作 -->
 <div class="panel grid">
 <button class="btn red" onclick="undo()">取消</button>
 <button class="btn red" onclick="resetAll()">全取消</button>
@@ -145,28 +137,9 @@ body {
 </button>
 </div>
 
-<!-- テンキー -->
-<div class="panel keypad" id="keypad">
-<button onclick="num(7)">7</button>
-<button onclick="num(8)">8</button>
-<button onclick="num(9)">9</button>
-
-<button onclick="num(4)">4</button>
-<button onclick="num(5)">5</button>
-<button onclick="num(6)">6</button>
-
-<button onclick="num(1)">1</button>
-<button onclick="num(2)">2</button>
-<button onclick="num(3)">3</button>
-
-<button class="key-c" onclick="clearRec()">C</button>
-<button onclick="num(0)">0</button>
-<button class="key-back" onclick="back()">←</button>
 </div>
 
-</div>
-
-<!-- ===== 口座入力画面 ===== -->
+<!-- ===== オーバーレイ ===== -->
 <div id="manualScreen">
   <div id="manualBox">
 
@@ -197,7 +170,6 @@ let isManualOpen = false;
 
 /* ===== date ===== */
 const today = new Date();
-
 const day =
   today.getFullYear() + "-" +
   String(today.getMonth() + 1).padStart(2, "0") + "-" +
@@ -213,7 +185,7 @@ document.getElementById("day").textContent = day;
 document.getElementById("reg").textContent = reg;
 
 /* ===== products ===== */
-const prices = [700,600,500,400,380,300,280,250,240,200,180,130,100,];
+const prices = [700,600,500,400,380,300,280,250,240,200,180,130,100];
 
 const container = document.getElementById("priceButtons");
 
@@ -229,7 +201,7 @@ prices.forEach(p => {
   container.appendChild(b);
 });
 
-/* ===== keypad ===== */
+/* ===== normal keypad ===== */
 function num(n){
   if(isManualOpen) return;
   received += n;
@@ -242,12 +214,16 @@ function back(){
   update();
 }
 
-/* ===== 口座入力 ===== */
+/* ===== overlay control ===== */
 function openManual(){
   manualValue = "";
   isManualOpen = true;
+
   document.getElementById("manualScreen").style.display = "block";
-  updateManual();
+
+  setTimeout(() => {
+    updateManual();
+  }, 0);
 }
 
 function cancelManual(){
@@ -274,11 +250,11 @@ function confirmManual(){
   document.getElementById("manualScreen").style.display = "none";
 
   update();
-  updateManual();
 }
-/* manual keypad */
+
+/* ===== manual keypad ===== */
 function manualNum(n){
-  manualValue = String(manualValue) + String(n);
+  manualValue = (manualValue || "") + String(n);
   updateManual();
 }
 
@@ -292,7 +268,7 @@ function manualClear(){
   updateManual();
 }
 
-/* keypad build */
+/* ===== build keypad ===== */
 const mk = document.getElementById("manualKeypad");
 
 [7,8,9,4,5,6,1,2,3].forEach(n=>{
@@ -301,30 +277,24 @@ const mk = document.getElementById("manualKeypad");
   b.onclick = ()=>manualNum(n);
   mk.appendChild(b);
 });
+
 const cBtn = document.createElement("button");
 cBtn.textContent = "C";
 cBtn.className = "key-c";
-cBtn.onclick = function () {
-  manualClear();
-};
+cBtn.onclick = manualClear;
 
 const zeroBtn = document.createElement("button");
 zeroBtn.textContent = "0";
-zeroBtn.onclick = function () {
-  manualNum(0);
-};
+zeroBtn.onclick = ()=>manualNum(0);
 
 const backBtn = document.createElement("button");
 backBtn.textContent = "←";
 backBtn.className = "key-back";
-backBtn.onclick = function () {
-  manualBack();
-};
+backBtn.onclick = manualBack;
 
 mk.appendChild(cBtn);
 mk.appendChild(zeroBtn);
 mk.appendChild(backBtn);
-
 
 /* ===== update ===== */
 function update(){
@@ -338,19 +308,19 @@ function update(){
   document.getElementById("rec").textContent = received || 0;
   document.getElementById("chg").textContent = recv - total;
 
-  
-
   document.getElementById("count").textContent = logs.length;
   document.getElementById("sales").textContent =
     logs.reduce((a,b)=>a+b.total,0);
 }
+
+/* ===== manual update (重要) ===== */
 function updateManual(){
   const el = document.getElementById("manualDisplay");
   if(!el) return;
-
   el.textContent = manualValue.length ? manualValue : "0";
 }
-/* ===== undo/reset ===== */
+
+/* ===== reset ===== */
 function undo(){
   if(history.length === 0) return;
   subtotal -= history.pop();
@@ -388,13 +358,7 @@ function pay(){
     return;
   }
 
-  logs.push({
-    day,
-    reg,
-    total: subtotal,
-    received: recv,
-    change
-  });
+  logs.push({ day, reg, total: subtotal, received: recv, change });
 
   localStorage.setItem("salesLogs", JSON.stringify(logs));
 
