@@ -323,13 +323,7 @@ function undo(){
   }
 }
 
-
-function pay(){
-
-  const r = Number(recv) || 0;
-
-  if(subtotal === 0){
- function resetAll(){
+function resetAll(){
 
   if(subtotal === 0 && history.length === 0){
     alert("取り消す内容がありません");
@@ -353,7 +347,13 @@ function pay(){
   update();
 
   alert("全取消しました");
-}   alert("商品がありません");
+}
+function pay(){
+
+  const r = Number(recv) || 0;
+
+  if(subtotal === 0){
+    alert("商品がありません");
     return;
   }
 
@@ -389,9 +389,7 @@ function pay(){
 
   alert("会計が完了しました");
 }
-
 update();
-
 </script>
 
 </body>
