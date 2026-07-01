@@ -331,16 +331,45 @@ function resetAll(){
 }
 
 function pay(){
-  const r = Number(recv)||0;
-  if(r<subtotal) return alert("金額不足");
 
-  logs.push({total:subtotal});
-  alert("完了");
+  const r = Number(recv) || 0;
 
-  subtotal=0;
-  recv="";
-  history=[];
+  if(subtotal === 0){
+    alert("商品がありません");
+    return;
+  }
+
+  if(r < subtotal){
+    alert("金額不足です");
+    return;
+  }
+
+  const change = r - subtotal;
+
+  if(!confirm(
+`会計を確定しますか？
+
+合計　　¥${subtotal}
+預かり　¥${r}
+おつり　¥${change}`
+  )){
+    return;
+  }
+
+  logs.push({
+    total: subtotal,
+    received: r,
+    change: change,
+    time: new Date().toLocaleString()
+  });
+
+  subtotal = 0;
+  recv = "";
+  history = [];
+
   update();
+
+  alert("会計が完了しました");
 }
 
 update();
