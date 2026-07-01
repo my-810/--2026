@@ -323,19 +323,37 @@ function undo(){
   }
 }
 
-function resetAll(){
-  subtotal=0;
-  recv="";
-  history=[];
-  update();
-}
 
 function pay(){
 
   const r = Number(recv) || 0;
 
   if(subtotal === 0){
-    alert("商品がありません");
+ function resetAll(){
+
+  if(subtotal === 0 && history.length === 0){
+    alert("取り消す内容がありません");
+    return;
+  }
+
+  if(!confirm(
+`現在の会計をすべて取り消します。
+
+小計　¥${subtotal}
+
+本当に全取消しますか？`
+  )){
+    return;
+  }
+
+  subtotal = 0;
+  recv = "";
+  history = [];
+
+  update();
+
+  alert("全取消しました");
+}   alert("商品がありません");
     return;
   }
 
