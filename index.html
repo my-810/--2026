@@ -3,98 +3,92 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>学祭レジ 安定版</title>
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#111111">
+<title>学祭レジ 完全版</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: sans-serif;
-  background: #f2f2f2;
+body{
+  margin:0;
+  font-family:sans-serif;
+  background:#f2f2f2;
 }
 
-.header {
-  background: #111;
-  color: #fff;
-  padding: 10px;
-  font-size: 14px;
+.header{
+  background:#111;
+  color:#fff;
+  padding:8px;
+  font-size:12px;
 }
 
-.wrap { padding: 10px; }
+.wrap{padding:6px;}
 
-.panel {
-  background: #fff;
-  padding: 6px;
-  margin-bottom: 6px;
-  border-radius: 10px;
+.panel{
+  background:#fff;
+  padding:6px;
+  margin-bottom:6px;
+  border-radius:10px;
 }
 
-.big {
-  font-size: 28px;
-  font-weight: bold;
+.big{
+  font-size:22px;
+  font-weight:bold;
 }
 
-.btn {
-  border: none;
-  border-radius: 10px;
-  padding: 10px;
-  font-size: 24px;
-  color: white;
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
 }
 
-.blue { background: #1976d2; }
-.red { background: #e53935; }
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+.btn{
+  border:none;
+  border-radius:10px;
+  padding:10px;
+  font-size:18px;
+  color:#fff;
 }
+
+.blue{background:#1976d2;}
+.red{background:#e53935;}
 
 /* keypad */
-.keypad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  padding: 10px;
-  border-radius: 12px;
-  background: #e0e0e0;
+.keypad{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
 }
 
-.keypad button {
-  height: 52px;
-  font-size: 22px;
-  border: none;
-  border-radius: 12px;
-  background: #f5f5f5;
+.keypad button{
+  height:48px;
+  font-size:20px;
+  border:none;
+  border-radius:10px;
+  background:#eee;
 }
 
-.key-c { background: #e53935; color:black; }
-.key-back { background: #ff9800; color:black; }
+.key-c{background:#e53935;color:#000;}
+.key-back{background:#ff9800;color:#000;}
 
 /* overlay */
-#manualScreen {
+#overlay{
   display:none;
   position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,0.8);
+  inset:0;
+  background:rgba(0,0,0,0.85);
   z-index:9999;
-  padding:20px;
+  padding:10px;
   box-sizing:border-box;
 }
 
-#manualBox {
+#overlayBox{
   background:#fff;
-  padding:15px;
   border-radius:12px;
+  padding:10px;
 }
 
-#manualDisplay {
-  font-size:32px;
+#overlayDisplay{
+  font-size:28px;
   font-weight:bold;
+  margin:6px 0;
 }
 </style>
 </head>
@@ -103,7 +97,6 @@ body {
 
 <div class="header">
 営業日: <span id="day"></span> /
-レジ: <span id="reg"></span><br>
 件数: <span id="count">0</span> /
 売上: ¥<span id="sales">0</span>
 </div>
@@ -111,69 +104,62 @@ body {
 <div class="wrap">
 
 <div class="panel">
-点数: <span id="items">0</span>点<br>
+点数: <span id="items">0</span><br>
 小計: ¥<span id="sub">0</span><br>
 <div class="big">合計: ¥<span id="total">0</span></div>
 </div>
 
 <div class="panel">
-預かり: ¥<span id="rec">0</span><br>
-おつり: ¥<span id="chg">0</span>
+預かり: ¥<span id="recv">0</span><br>
+おつり: ¥<span id="change">0</span>
+</div>
 
-</div>
-<div class="panel">
-<div class="grid" id="priceButtons"></div>
-</div>
+<div class="panel grid" id="products"></div>
 
 <div class="panel grid">
 <button class="btn red" onclick="undo()">取消</button>
 <button class="btn red" onclick="resetAll()">全取消</button>
-<button class="btn blue" onclick="openManual()">口座入力</button>
+<button class="btn blue" onclick="openOverlay()">口座入力</button>
 </div>
 
 <div class="panel">
-<button class="btn blue" style="width:100%" onclick="pay()">
-会計完了
-</button>
-</div>
-</div>
-<div class="panel">
-  <div class="keypad">
-
-    <button onclick="num(7)">7</button>
-    <button onclick="num(8)">8</button>
-    <button onclick="num(9)">9</button>
-
-    <button onclick="num(4)">4</button>
-    <button onclick="num(5)">5</button>
-    <button onclick="num(6)">6</button>
-
-    <button onclick="num(1)">1</button>
-    <button onclick="num(2)">2</button>
-    <button onclick="num(3)">3</button>
-
-    <button class="key-c" onclick="received='';update()">C</button>
-    <button onclick="num(0)">0</button>
-    <button class="key-back" onclick="back()">←</button>
-
-  </div>
+<button class="btn blue" style="width:100%" onclick="pay()">会計完了</button>
 </div>
 
-<!-- ===== オーバーレイ ===== -->
-<div id="manualScreen">
-  <div id="manualBox">
+<!-- テンキー -->
+<div class="panel keypad">
+<button onclick="num(7)">7</button>
+<button onclick="num(8)">8</button>
+<button onclick="num(9)">9</button>
 
-    <div style="font-size:18px;margin-bottom:10px;">
-      口座入力
-    </div>
+<button onclick="num(4)">4</button>
+<button onclick="num(5)">5</button>
+<button onclick="num(6)">6</button>
 
-    <div id="manualDisplay">0</div>
+<button onclick="num(1)">1</button>
+<button onclick="num(2)">2</button>
+<button onclick="num(3)">3</button>
 
-    <div class="panel keypad" id="manualKeypad"></div>
+<button class="key-c" onclick="clearRecv()">C</button>
+<button onclick="num(0)">0</button>
+<button class="key-back" onclick="back()">←</button>
+</div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
-      <button class="btn blue" onclick="confirmManual()">確定</button>
-      <button class="btn red" onclick="cancelManual()">キャンセル</button>
+</div>
+
+<!-- ===== overlay ===== -->
+<div id="overlay">
+  <div id="overlayBox">
+
+    <div>口座入力</div>
+
+    <div id="overlayDisplay">0</div>
+
+    <div class="panel keypad" id="overlayKeys"></div>
+
+    <div class="grid" style="margin-top:10px;">
+      <button class="btn blue" onclick="confirmOverlay()">確定</button>
+      <button class="btn red" onclick="closeOverlay()">キャンセル</button>
     </div>
 
   </div>
@@ -183,243 +169,180 @@ body {
 
 /* ===== state ===== */
 let subtotal = 0;
-let received = "";
-let manualValue = "";
+let recv = "";
 let history = [];
-let isManualOpen = false;
+let logs = [];
+
+let overlayValue = "";
+let overlayOpen = false;
 
 /* ===== date ===== */
-const today = new Date();
-const day =
-  today.getFullYear() + "-" +
-  String(today.getMonth() + 1).padStart(2, "0") + "-" +
-  String(today.getDate()).padStart(2, "0");
-
-const reg = "A";
-
-/* ===== storage ===== */
-let logs = JSON.parse(localStorage.getItem("salesLogs") || "[]");
-
-/* ===== init ===== */
-document.getElementById("day").textContent = day;
-document.getElementById("reg").textContent = reg;
+const d = new Date();
+document.getElementById("day").textContent =
+`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
 
 /* ===== products ===== */
 const prices = [700,600,500,400,380,300,280,250,240,200,180,130,100];
 
-const container = document.getElementById("priceButtons");
+const p = document.getElementById("products");
 
-prices.forEach(p => {
+prices.forEach(v=>{
   const b = document.createElement("button");
-  b.className = "btn blue";
-  b.textContent = p + "円";
-  b.onclick = () => {
-    subtotal += p;
-    history.push(p);
+  b.className="btn blue";
+  b.textContent=v+"円";
+  b.onclick=()=>{
+    subtotal += v;
+    history.push(v);
     update();
   };
-  container.appendChild(b);
+  p.appendChild(b);
 });
 
 /* ===== normal keypad ===== */
 function num(n){
-  if(isManualOpen) return;
-  received += n;
+  if(overlayOpen) return;
+  recv += n;
   update();
 }
 
 function back(){
-  if(isManualOpen) return;
-  received = received.slice(0,-1);
+  if(overlayOpen) return;
+  recv = recv.slice(0,-1);
   update();
 }
 
-/* ===== overlay control ===== */
-function openManual(){
-  manualValue = "";
-  isManualOpen = true;
-
-  document.getElementById("manualScreen").style.display = "block";
-
-  buildManualKeypad();   // ←これ追加（重要）
-
-  setTimeout(() => {
-    updateManual();
-  }, 0);
+function clearRecv(){
+  recv = "";
+  update();
 }
 
-function cancelManual(){
-  manualValue = "";
-  isManualOpen = false;
-  document.getElementById("manualScreen").style.display = "none";
+/* ===== overlay ===== */
+function openOverlay(){
+  overlayOpen = true;
+  overlayValue = "";
+
+  document.getElementById("overlay").style.display="block";
+
+  buildOverlay();
+  updateOverlay();
 }
 
-function confirmManual(){
+function closeOverlay(){
+  overlayOpen = false;
+  document.getElementById("overlay").style.display="none";
+}
 
-  const price = Number(manualValue);
+function overlayNum(n){
+  overlayValue += n;
+  updateOverlay();
+}
 
-  if(!price || price <= 0){
-    alert("金額が不正です");
+function overlayBack(){
+  overlayValue = overlayValue.slice(0,-1);
+  updateOverlay();
+}
+
+function overlayClear(){
+  overlayValue = "";
+  updateOverlay();
+}
+
+function confirmOverlay(){
+
+  const v = Number(overlayValue);
+
+  if(!v || v<=0){
+    alert("金額エラー");
     return;
   }
 
-  subtotal += price;
-  history.push(price);
+  subtotal += v;
+  history.push(v);
 
-  manualValue = "";
-  isManualOpen = false;
-
-  document.getElementById("manualScreen").style.display = "none";
-
+  closeOverlay();
   update();
 }
 
-/* ===== manual keypad ===== */
-function manualNum(n){
-  manualValue = (manualValue || "") + String(n);
-  updateManual();
+function updateOverlay(){
+  document.getElementById("overlayDisplay").textContent =
+    overlayValue || "0";
 }
 
-function manualBack(){
-  manualValue = manualValue.slice(0,-1);
-  updateManual();
-}
+function buildOverlay(){
 
-function manualClear(){
-  manualValue = "";
-  updateManual();
-}
-function buildManualKeypad(){
+  const k = document.getElementById("overlayKeys");
+  k.innerHTML="";
 
-  const mk = document.getElementById("manualKeypad");
-  mk.innerHTML = ""; // ←超重要（リセット）
-
-  const keys = [7,8,9,4,5,6,1,2,3];
-
-  keys.forEach(n=>{
-    const b = document.createElement("button");
-    b.textContent = n;
-    b.onclick = ()=>manualNum(n);
-    mk.appendChild(b);
+  [7,8,9,4,5,6,1,2,3].forEach(n=>{
+    const b=document.createElement("button");
+    b.textContent=n;
+    b.onclick=()=>overlayNum(n);
+    k.appendChild(b);
   });
 
-  const cBtn = document.createElement("button");
-  cBtn.textContent = "C";
-  cBtn.className = "key-c";
-  cBtn.onclick = manualClear;
+  const c=document.createElement("button");
+  c.textContent="C";
+  c.className="key-c";
+  c.onclick=overlayClear;
 
-  const zeroBtn = document.createElement("button");
-  zeroBtn.textContent = "0";
-  zeroBtn.onclick = ()=>manualNum(0);
+  const z=document.createElement("button");
+  z.textContent="0";
+  z.onclick=()=>overlayNum(0);
 
-  const backBtn = document.createElement("button");
-  backBtn.textContent = "←";
-  backBtn.className = "key-back";
-  backBtn.onclick = manualBack;
+  const b=document.createElement("button");
+  b.textContent="←";
+  b.className="key-back";
+  b.onclick=overlayBack;
 
-  mk.appendChild(cBtn);
-  mk.appendChild(zeroBtn);
-  mk.appendChild(backBtn);
+  k.appendChild(c);
+  k.appendChild(z);
+  k.appendChild(b);
 }
-/* ===== build keypad ===== */
-
-
-const cBtn = document.createElement("button");
-cBtn.textContent = "C";
-cBtn.className = "key-c";
-cBtn.onclick = manualClear;
-
-const zeroBtn = document.createElement("button");
-zeroBtn.textContent = "0";
-zeroBtn.onclick = ()=>manualNum(0);
-
-const backBtn = document.createElement("button");
-backBtn.textContent = "←";
-backBtn.className = "key-back";
-backBtn.onclick = manualBack;
-
-mk.appendChild(cBtn);
-mk.appendChild(zeroBtn);
-mk.appendChild(backBtn);
 
 /* ===== update ===== */
 function update(){
 
-  const total = subtotal;
-  const recv = Number(received) || 0;
+  const r = Number(recv)||0;
 
-  document.getElementById("items").textContent = history.length;
-  document.getElementById("sub").textContent = subtotal;
-  document.getElementById("total").textContent = total;
-  document.getElementById("rec").textContent = received || 0;
-  document.getElementById("chg").textContent = recv - total;
+  document.getElementById("sub").textContent=subtotal;
+  document.getElementById("total").textContent=subtotal;
+  document.getElementById("recv").textContent=recv||0;
+  document.getElementById("change").textContent=r-subtotal;
+  document.getElementById("items").textContent=history.length;
 
-  document.getElementById("count").textContent = logs.length;
-  document.getElementById("sales").textContent =
+  document.getElementById("count").textContent=logs.length;
+  document.getElementById("sales").textContent=
     logs.reduce((a,b)=>a+b.total,0);
 }
 
-/* ===== manual update (重要) ===== */
-function updateManual(){
-  const el = document.getElementById("manualDisplay");
-  if(!el) return;
-  el.textContent = manualValue.length ? manualValue : "0";
-}
-
-/* ===== reset ===== */
+/* ===== control ===== */
 function undo(){
-  if(history.length === 0) return;
-  subtotal -= history.pop();
-  update();
+  if(history.length){
+    subtotal -= history.pop();
+    update();
+  }
 }
 
 function resetAll(){
-  if(!confirm("全取消しますか？")) return;
-  subtotal = 0;
-  received = "";
-  manualValue = "";
-  history = [];
-  isManualOpen = false;
+  subtotal=0;
+  recv="";
+  history=[];
   update();
 }
 
-/* ===== pay ===== */
 function pay(){
+  const r = Number(recv)||0;
+  if(r<subtotal) return alert("金額不足");
 
-  if(subtotal === 0){
-    alert("商品がありません");
-    return;
-  }
+  logs.push({total:subtotal});
+  alert("完了");
 
-  const recv = Number(received) || 0;
-
-  if(recv < subtotal){
-    alert("金額不足です");
-    return;
-  }
-
-  const change = recv - subtotal;
-
-  if(!confirm(`合計 ¥${subtotal}\n預かり ¥${recv}\nおつり ¥${change}\n確定しますか？`)){
-    return;
-  }
-
-  logs.push({ day, reg, total: subtotal, received: recv, change });
-
-  localStorage.setItem("salesLogs", JSON.stringify(logs));
-
-  subtotal = 0;
-  received = "";
-  history = [];
+  subtotal=0;
+  recv="";
+  history=[];
   update();
 }
 
-/* ===== PWA ===== */
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("./sw.js");
-}
-
-/* init */
 update();
 
 </script>
